@@ -38,6 +38,14 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
+	if payload.Email == "" {
+		utils.WriteError(w, http.StatusBadRequest, errors.New("email is required"))
+		return
+	}
+	if payload.Password == "" {
+		utils.WriteError(w, http.StatusBadRequest, errors.New("password is required"))
+		return
+	}
 
 	existingUser, err := h.store.GetUserByEmail(payload.Email)
 	if err != nil {
@@ -49,14 +57,11 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
-		return 
+		return
 	}
-
-	
 
 	user := &types.User{
 		FirstName: payload.FirstName,
