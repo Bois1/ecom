@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Bois1/ecomm/service/auth"
 	"github.com/Bois1/ecomm/types"
 	"github.com/Bois1/ecomm/utils"
 	"github.com/gorilla/mux"
@@ -38,7 +39,6 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user already exists
 	existingUser, err := h.store.GetUserByEmail(payload.Email)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
@@ -49,12 +49,20 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create new user
+
+	hashedPassword, err := auth.HashPassword(payload.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return 
+	}
+
+	
+
 	user := &types.User{
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
 		Email:     payload.Email,
-		Password:  payload.Password,
+		Password:  hashedPassword,
 		CreatedAt: time.Now(),
 	}
 
