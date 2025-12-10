@@ -23,6 +23,7 @@ func TestUserServiceHandlers(t *testing.T) {
 			Email:     "",
 			Password:  "asdaque",
 		}
+		
 		marshalled, err := json.Marshal(payload)
 		if err != nil {
 			t.Fatal(err)
