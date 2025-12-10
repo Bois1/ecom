@@ -17,7 +17,7 @@ func TestUserServiceHandlers(t *testing.T) {
 	handler := NewHandler(userStore)
 
 	t.Run("should fail if the user payload is invalid", func(t *testing.T) {
-		payload := types.RegiserUserPayload{
+		payload := types.RegisterUserPayload{
 			FirstName: "test",
 			LastName:  "sisi",
 			Email:     "",

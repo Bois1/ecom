@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"time"
+	"fmt"
 
 	"github.com/Bois1/ecomm/service/auth"
 	"github.com/Bois1/ecomm/types"
@@ -33,23 +34,21 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	var payload types.RegiserUserPayload
+	var payload types.RegisterUserPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	if payload.Email == "" {
-		utils.WriteError(w, http.StatusBadRequest, errors.New("email is required"))
-		return
-	}
-	if payload.Password == "" {
-		utils.WriteError(w, http.StatusBadRequest, errors.New("password is required"))
+
+	if err := payload.Validate(); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
+	
 	existingUser, err := h.store.GetUserByEmail(payload.Email)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("database error: %w", err))
 		return
 	}
 	if existingUser != nil {
@@ -57,12 +56,14 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to hash password: %w", err))
 		return
 	}
 
+	
 	user := &types.User{
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
@@ -72,7 +73,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.store.CreateUser(user); err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err))
 		return
 	}
 
